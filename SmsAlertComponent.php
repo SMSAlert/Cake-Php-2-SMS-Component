@@ -28,28 +28,28 @@ class SmsAlertComponent extends Component {
 	function send($mobileno, $text, $schedule=null) {
 		if($this->_init_done) {
 			$error = false;
+			$parameters = array();
 			
-			if($schedule!=null) {	
-				$parameters = array( 'user' => $this->username, 'pwd' => $this->password, 'route' => $this->route,
-					'sender' => $this->senderid, 'mobileno' => $mobileno, 'text' => $text, 'schedule' => $schedule, );
-				$required_parameters = array('user', 'pwd', 'mobileno', 'sender', 'text', 'schedule');	
-				
+			$parameters['user'] = $this->username;
+			$parameters['pwd'] = $this->password;
+			$parameters['sender'] = $this->senderid;
+			$parameters['mobileno'] = $mobileno;
+			$parameters['text'] = $text;
+			if($this->route!=null) {
+				$parameters['route'] = $this->route;
 			}
-			else {
-				$parameters = array( 'user' => $this->username, 'pwd' => $this->password, 'route' => $this->route,
-					'sender' => $this->senderid, 'mobileno' => $mobileno, 'text' => $text );
-				$required_parameters = array('user', 'pwd', 'mobileno', 'sender', 'text');
+			if($schedule!=null) {
+				$parameters['schedule'] = $schedule;
 			}
-			
+			$required_parameters = array('user', 'pwd', 'mobileno', 'sender', 'text');
+						
 			foreach($required_parameters as $parameter) {
 				if(empty($parameters[$parameter])) {
 					trigger_error("Parameter {$parameter} is required");
 					$error = true;
 				}
 			}
-				
 			if(!$error) {
-				
 				$delivery_report_url = $this->delivery_report_url;
 				if(!empty($delivery_report_url)) {
 					$message_id = $this->storeMessage(array('mobileno' => $parameters['mobileno'], 'sender' => $parameters['sender'], 'text' => $parameters['text']));
@@ -57,7 +57,6 @@ class SmsAlertComponent extends Component {
 						$parameters['reference'] = $message_id;
 						$parameters['dlrurl'] = $delivery_report_url;
 					}
-					echo $message_id; 
 				}
 				
 				$url = $this->api_url.'push.json?';
@@ -114,7 +113,7 @@ class SmsAlertComponent extends Component {
 				if($result !== FALSE) {
 					$result['status'] = $_GET['status'];
 					if($this->auto_cleanup) {
-						//unlink($file_path);
+						unlink($file_path);
 					}
 					return $result;
 				}
@@ -167,7 +166,5 @@ class SmsAlertComponent extends Component {
 	function initializationError() {
 		trigger_error('The SMS Alert component requires curl to operate.');
 	}
-
-
 }
 ?>
